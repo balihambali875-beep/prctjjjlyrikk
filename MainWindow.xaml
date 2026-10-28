@@ -1,0 +1,146 @@
+<Window x:Class="LyricPop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Lyric Pop" Width="440" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False" Topmost="True"
+        UseLayoutRounding="True" SnapsToDevicePixels="True"
+        FontFamily="Segoe UI Variable Display, Segoe UI">
+    <Window.Resources>
+        <Style x:Key="IconPath" TargetType="Path">
+            <Setter Property="Width" Value="13"/>
+            <Setter Property="Height" Value="13"/>
+            <Setter Property="Stretch" Value="Uniform"/>
+            <Setter Property="Fill" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+        </Style>
+        <Style x:Key="IconBtn" TargetType="Button">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="1,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="Transparent">
+                            <Ellipse x:Name="bg" Fill="{TemplateBinding Background}"/>
+                            <Ellipse x:Name="hover" Fill="{TemplateBinding Foreground}" Opacity="0"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="hover" Property="Opacity" Value="0.16"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border x:Name="Root" Margin="14" CornerRadius="22" BorderThickness="1" Opacity="0">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="26" ShadowDepth="5" Opacity="0.38" Color="Black"/>
+        </Border.Effect>
+        <Border.RenderTransform>
+            <TranslateTransform x:Name="RootShift" Y="-18"/>
+        </Border.RenderTransform>
+
+        <StackPanel>
+            <!-- Header: artwork, judul/artis, tombol kontrol (seret untuk memindah, klik untuk buka/tutup lirik) -->
+            <Grid x:Name="Head" Margin="10,10,6,10" Background="Transparent" Cursor="SizeAll">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Border x:Name="ArtBox" Grid.Column="0" Width="44" Height="44" CornerRadius="12">
+                    <TextBlock x:Name="ArtNote" Text="&#9834;" FontSize="22" Foreground="#E6FFFFFF"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="12,0,6,0" VerticalAlignment="Center">
+                    <TextBlock x:Name="TitleText" FontSize="14" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock x:Name="ArtistText" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="BtnPrev" Style="{StaticResource IconBtn}" ToolTip="Sebelumnya">
+                        <Path Style="{StaticResource IconPath}" Data="M6,6 h2 v12 H6 z M9.5,12 L18,18 V6 z"/>
+                    </Button>
+                    <Button x:Name="BtnPlay" Style="{StaticResource IconBtn}" ToolTip="Putar / jeda">
+                        <Path x:Name="PlayIcon" Style="{StaticResource IconPath}" Data="M8,5 v14 l11,-7 z"/>
+                    </Button>
+                    <Button x:Name="BtnNext" Style="{StaticResource IconBtn}" ToolTip="Berikutnya">
+                        <Path Style="{StaticResource IconPath}" Data="M16,6 h2 v12 h-2 z M6,18 l8.5,-6 L6,6 z"/>
+                    </Button>
+                    <Button x:Name="BtnMin" Style="{StaticResource IconBtn}" ToolTip="Perkecil">
+                        <Path x:Name="MinIcon" Style="{StaticResource IconPath}" Data="M5,11 h14 v2 H5 z"/>
+                    </Button>
+                    <Button x:Name="BtnClose" Style="{StaticResource IconBtn}" ToolTip="Tutup (muncul lagi saat lagu berganti)">
+                        <Path Style="{StaticResource IconPath}" Data="M6.4,5 L12,10.6 L17.6,5 L19,6.4 L13.4,12 L19,17.6 L17.6,19 L12,13.4 L6.4,19 L5,17.6 L10.6,12 L5,6.4 z"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Mode ringkas: satu baris lirik aktif -->
+            <TextBlock x:Name="NowText" Margin="16,0,16,12" FontWeight="ExtraBold" TextWrapping="Wrap"
+                       Cursor="Hand" ToolTip="Klik untuk membuka lirik lengkap">
+                <TextBlock.RenderTransform>
+                    <TranslateTransform x:Name="NowShift"/>
+                </TextBlock.RenderTransform>
+            </TextBlock>
+            <Border x:Name="NowBtn" Visibility="Collapsed" Margin="16,0,0,12" HorizontalAlignment="Left"
+                    CornerRadius="99" Padding="14,6" Cursor="Hand">
+                <TextBlock x:Name="NowBtnText" Text="Cari manual" FontSize="12" FontWeight="Bold"/>
+            </Border>
+
+            <!-- Mode diperluas: progress + lirik lengkap -->
+            <StackPanel x:Name="Body" Margin="14,0,14,10" Visibility="Collapsed">
+                <Grid Margin="2,0,2,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="CurText" Grid.Column="0" FontSize="11" Text="0:00" VerticalAlignment="Center"/>
+                    <Grid x:Name="Bar" Grid.Column="1" Height="18" Margin="9,0" Background="Transparent" Cursor="Hand">
+                        <Border x:Name="BarTrack" Height="5" CornerRadius="3" VerticalAlignment="Center"/>
+                        <Border x:Name="BarFill" Height="5" CornerRadius="3" VerticalAlignment="Center" HorizontalAlignment="Left" Width="0"/>
+                    </Grid>
+                    <TextBlock x:Name="DurText" Grid.Column="2" FontSize="11" Text="--:--" VerticalAlignment="Center"/>
+                </Grid>
+
+                <ScrollViewer x:Name="Scroll" Height="230" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
+                    <ScrollViewer.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#00000000" Offset="0"/>
+                            <GradientStop Color="#FF000000" Offset="0.16"/>
+                            <GradientStop Color="#FF000000" Offset="0.84"/>
+                            <GradientStop Color="#00000000" Offset="1"/>
+                        </LinearGradientBrush>
+                    </ScrollViewer.OpacityMask>
+                    <StackPanel x:Name="Lines" Margin="8,95"/>
+                </ScrollViewer>
+
+                <TextBlock x:Name="StateText" Visibility="Collapsed" TextAlignment="Center" TextWrapping="Wrap"
+                           FontSize="13" Margin="8,28"/>
+
+                <Grid Margin="2,8,2,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="SrcText" Grid.Column="0" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="ManualLink" Grid.Column="1" FontSize="11" Cursor="Hand" TextDecorations="Underline"
+                               Margin="8,0,0,0" VerticalAlignment="Center"/>
+                </Grid>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>
