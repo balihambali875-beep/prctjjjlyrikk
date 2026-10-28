@@ -34,7 +34,7 @@ public partial class App : Application
         auto.CheckedChanged += (_, _) => Autostart.Set(auto.Checked);
         menu.Items.Add(auto);
 
-        menu.Items.Add("Tentang", null, (_, _) => MainWindow.ShowAbout());
+        menu.Items.Add("Tentang", null, (_, _) => LyricPop.MainWindow.ShowAbout());
         menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
         menu.Items.Add("Keluar", null, (_, _) => Shutdown());
 
